@@ -30,7 +30,7 @@ const LoginForm = () => {
             formData.email,
             formData.password
           );
-  
+          localStorage.setItem("isAdmin", "false");
           alert("Logged In successfully!")
           // console.log("User created:", userCredential.user);
           navigate("/");
