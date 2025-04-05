@@ -1,11 +1,82 @@
 import { useState, useRef } from "react";
 import { FaUpload, FaVideo, FaStop, FaLocationArrow } from "react-icons/fa";
+import { collection,addDoc , Timestamp} from "firebase/firestore";
+import { db } from "../config/firebase";
 
 const ReportSection = () => {
+  const incidentsRef = collection(db, "report");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [videoURL, setVideoURL] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState(null)
+  const [loading, setLoading] = useState(false);
+
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState("");
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setVideoFile(file);
+  };
+
+  const handleVideoUpload = async () => {
+    if (!videoFile) return null; 
+  
+    const formData = new FormData();
+    formData.append("file", videoFile);
+    formData.append("upload_preset", "hackathon-project-video-storage");
+  
+    try {
+      const res = await fetch("https://api.cloudinary.com/v1_1/dbrwua3yk/video/upload", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await res.json();
+      return data.secure_url; 
+    } catch (error) {
+      console.log("Video upload failed:", error);
+      return null; 
+    }
+  };
+  
+  const onSubmitReport = async () => {
+    setLoading(true);
+    try {
+      let videoURL = null;
+  
+      if (videoFile) {
+        videoURL = await handleVideoUpload();
+      }
+  
+      const dateTimestamp = Timestamp.fromDate(new Date(date));
+  
+      const uploadData = {
+        location,
+        description,
+        date: dateTimestamp,
+        ...(videoURL && { videoURL }) 
+      };
+  
+      await addDoc(incidentsRef, uploadData);
+      alert("Report submitted successfully!");
+  
+      
+      setLocation("");
+      setDescription("");
+      setDate("");
+      setVideoFile(null);
+      setVideoURL("");
+  
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
   const startRecording = async () => {
     try {
@@ -28,7 +99,7 @@ const ReportSection = () => {
       mediaRecorderRef.current.start();
       setIsRecording(true);
     } catch (error) {
-      console.error("Error accessing camera: ", error);
+      console.log("Error accessing camera: ", error);
     }
   };
 
@@ -54,7 +125,7 @@ const ReportSection = () => {
         <div className="mb-5">
           <label className="text-gray-300 block mb-2">📍 Location:</label>
           <div className="relative">
-            <input type="text" className="w-full p-3 bg-gray-700 text-white rounded-lg pl-10 focus:ring-2 focus:ring-blue-400" placeholder="Enter location" />
+            <input type="text"  value={location} className="w-full p-3 bg-gray-700 text-white rounded-lg pl-10 focus:ring-2 focus:ring-blue-400" placeholder="Enter location" onChange={(e) => setLocation(e.target.value)}/>
             <FaLocationArrow className="absolute top-3 left-3 text-gray-400" />
           </div>
         </div>
@@ -62,20 +133,20 @@ const ReportSection = () => {
         {/* Incident Description */}
         <div className="mb-5">
           <label className="text-gray-300 block mb-2">📝 Describe the Incident:</label>
-          <textarea className="w-full p-3 bg-gray-700 text-white rounded-lg h-28 focus:ring-2 focus:ring-blue-400" placeholder="Write details here..."></textarea>
+          <textarea  value={description} className="w-full p-3 bg-gray-700 text-white rounded-lg h-28 focus:ring-2 focus:ring-blue-400" placeholder="Write details here..." onChange={(e) => setDescription(e.target.value)}></textarea>
         </div>
 
         {/* Date & Time */}
         <div className="mb-5">
           <label className="text-gray-300 block mb-2">📅 Date & Time:</label>
-          <input type="datetime-local" className="w-full p-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-400" />
+          <input type="datetime-local" value={date} className="w-full p-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-400" onChange={(e) => setDate(e.target.value)}/>
         </div>
 
         {/* File Upload */}
         <div className="mb-5">
           <label className="text-gray-300 block mb-2">🎥 Video Upload:</label>
           <div className="relative">
-            <input type="file" accept="video/*" className="w-full p-3 bg-gray-700 text-white rounded-lg cursor-pointer" />
+            <input type="file" accept="video/*" onChange={handleFileChange} className="w-full p-3 bg-gray-700 text-white rounded-lg cursor-pointer" />
             <FaUpload className="absolute top-3 right-3 text-gray-400" />
           </div>
         </div>
@@ -103,8 +174,8 @@ const ReportSection = () => {
         )}
 
         {/* Submit Button */}
-        <button className="w-full bg-blue-600 p-4 rounded-lg text-white text-lg font-semibold hover:bg-blue-500 transition-all">
-          🚀 Submit Report
+        <button className="w-full bg-blue-600 p-4 rounded-lg text-white text-lg font-semibold hover:bg-blue-500 transition-all" onClick={onSubmitReport}>
+          🚀 {loading ? "Submitting..." : "Submit Report"}
         </button>
       </div>
     </div>
