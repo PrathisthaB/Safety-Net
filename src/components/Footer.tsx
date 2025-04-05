@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <Shield className="h-8 w-8 text-indigo-500" />
-              <span className="text-xl font-bold text-white">SafeReport</span>
+              <span className="text-xl font-bold text-white">SafetyNet</span>
             </div>
             <p className="text-gray-400 mb-4">
               Empowering communities to report incidents securely and anonymously.
