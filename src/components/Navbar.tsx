@@ -6,7 +6,6 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
-  // Navigation Links
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/report", label: "Report" },
@@ -20,12 +19,12 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo + Links */}
           <div className="flex items-center">
-            {/* Logo */}
             <Link to="/" className="flex items-center">
               <Shield className="h-8 w-8 text-indigo-500" />
             </Link>
-            <span className="company-name" style={{color:'white'}}>SafetyNet</span>
-            {/* Desktop Navigation */}
+            <span className="company-name ml-2 text-white font-semibold text-lg">
+              SafetyNet
+            </span>
             <div className="hidden md:flex ml-10 space-x-6">
               {navLinks.map((link) => (
                 <Link
@@ -43,12 +42,18 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right: Sign Up Button */}
-          <div className="hidden md:block">
+          {/* Right: Buttons */}
+          <div className="hidden md:flex items-center gap-4">
             <Link to="/signup">
               <button className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
                 <UserCircle className="h-5 w-5" />
                 <span>Sign Up</span>
+              </button>
+            </Link>
+            <Link to="/admin-login">
+              <button className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">
+                <UserCircle className="h-5 w-5" />
+                <span>Admin Panel</span>
               </button>
             </Link>
           </div>
@@ -68,23 +73,31 @@ const Navbar = () => {
 
       {/* Mobile Dropdown Menu */}
       {isOpen && (
-        <div className="md:hidden transition-all duration-300 ease-in-out">
-          <div className="px-4 pb-3 space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`block px-3 py-2 rounded-md text-base font-medium transition duration-200 ${
-                  location.pathname === link.path
-                    ? "text-indigo-400"
-                    : "text-gray-300 hover:text-indigo-400"
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
+        <div className="md:hidden transition-all duration-300 ease-in-out bg-slate-900/95 px-4 pb-3 space-y-2">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`block px-3 py-2 rounded-md text-base font-medium transition duration-200 ${
+                location.pathname === link.path
+                  ? "text-indigo-400"
+                  : "text-gray-300 hover:text-indigo-400"
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link to="/signup" onClick={() => setIsOpen(false)}>
+            <div className="block px-3 py-2 rounded-md text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+              Sign Up
+            </div>
+          </Link>
+          <Link to="/admin-login" onClick={() => setIsOpen(false)}>
+            <div className="block px-3 py-2 rounded-md text-base font-medium text-white bg-red-600 hover:bg-red-700">
+              Admin Login
+            </div>
+          </Link>
         </div>
       )}
     </nav>

@@ -5,6 +5,8 @@ import Features from "./components/Features";
 import ReportSection from "./components/ReportSection";
 import Footer from "./components/Footer";
 import SignUp from "./components/signup"; // Fixed case
+import Track from "./components/track";
+import Report from "./components/report"; // Fixed case
 import About from "./components/aboutus"; // Added About page
 
 function App() {
@@ -28,8 +30,8 @@ function App() {
           
           {/* Other Page Routes */}
           <Route path="/signup" element={<SignUp />} />
-          
-          
+          <Route path="/track" element={<Track />} />
+          <Route path="/report" element={<Report />} />
           <Route path="/about" element={<About />} /> {/* Added About Route */}
         </Routes>
       </div>
