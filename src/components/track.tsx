@@ -2,8 +2,13 @@ import { useState, useEffect } from "react";
 import { MapPin, AlertCircle, CheckCircle, PlayCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { db } from "../config/firebase";
-import { getDocs, collection } from "firebase/firestore";
-import { Timestamp } from "firebase/firestore";
+import {
+  getDocs,
+  collection,
+  updateDoc,
+  doc,
+  Timestamp,
+} from "firebase/firestore";
 
 interface Incident {
   id: string;
@@ -18,6 +23,7 @@ interface Incident {
 }
 
 const Track = () => {
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
   const incidentsRef = collection(db, "report");
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,8 +32,9 @@ const Track = () => {
   const [filterLocation, setFilterLocation] = useState("");
 
   const formatDate = (timestamp: Timestamp): string => {
-    return timestamp.toDate().toLocaleString(); 
+    return timestamp.toDate().toLocaleString();
   };
+
   useEffect(() => {
     const getIncidentList = async () => {
       setLoading(true);
@@ -35,14 +42,13 @@ const Track = () => {
         const data = await getDocs(incidentsRef);
         const filteredData = data.docs.map((doc) => {
           const docData = doc.data();
-        
+
           return {
             ...docData,
             id: doc.id,
-            date: docData.date ? formatDate(docData.date) : "N/A", 
+            date: docData.date ? formatDate(docData.date) : "N/A",
           };
         });
-        console.log(filteredData)
         setIncidents(filteredData as Incident[]);
       } catch (error) {
         alert(error);
@@ -54,19 +60,39 @@ const Track = () => {
     getIncidentList();
   }, []);
 
+  const updateIncidentStatus = async (incidentId: string, newStatus: string) => {
+    try {
+      const incidentRef = doc(db, "report", incidentId);
+      await updateDoc(incidentRef, {
+        status: newStatus,
+      });
+
+      // Update state locally
+      setIncidents((prev) =>
+        prev.map((incident) =>
+          incident.id === incidentId ? { ...incident, status: newStatus } : incident
+        )
+      );
+      alert("Status updated!");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status");
+    }
+  };
+
   const filteredIncidents = incidents.filter((incident) => {
     const matchesSearch = search
       ? incident.title?.toLowerCase().includes(search.toLowerCase())
       : true;
-  
+
     const matchesStatus = filterStatus ? incident.status === filterStatus : true;
     const matchesLocation = filterLocation
       ? incident.location?.toLowerCase().includes(filterLocation.toLowerCase())
       : true;
-  
+
     return matchesSearch && matchesStatus && matchesLocation;
   });
-  
+
   return (
     <motion.div
       className="min-h-screen bg-[#0A192F] text-white p-10 relative overflow-hidden"
@@ -139,15 +165,17 @@ const Track = () => {
               </p>
               {incident.status ? (
                 <p className="text-sm text-gray-300 flex items-center gap-1 mt-2">
-                {incident.status === "Resolved" ? (
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-yellow-400" />
-                )}
-                {incident.status}
-              </p>
-              ) : ("...")}
-              
+                  {incident.status === "Resolved" ? (
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-yellow-400" />
+                  )}
+                  {incident.status}
+                </p>
+              ) : (
+                "..."
+              )}
+
               <p className="text-sm text-gray-300 mt-2">
                 🔍 {incident.actionTaken ? incident.actionTaken : "..."}
               </p>
@@ -155,7 +183,6 @@ const Track = () => {
                 📢 Source: {incident.source ? incident.source : "..."}
               </p>
 
-              {/* Video Link Instead of Embedded Player */}
               <div className="mt-4">
                 <a
                   href={incident.videoURL ? incident.videoURL : "#"}
@@ -166,6 +193,18 @@ const Track = () => {
                   <PlayCircle className="h-5 w-5" /> 🎥 Watch Incident Video
                 </a>
               </div>
+              {isAdmin === true && (
+                incident.status !== "Resolved" && (
+                  <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => updateIncidentStatus(incident.id, "Resolved")}
+                    className="bg-green-600 text-white px-3 py-1 text-sm rounded hover:bg-green-700"
+                  >
+                    Mark as Resolved
+                  </button>
+                </div>
+                )
+              )} 
             </motion.div>
           ))
         )}
