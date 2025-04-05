@@ -8,6 +8,7 @@ import SignUp from "./components/signup"; // Fixed case
 import Track from "./components/track";
 import Report from "./components/report"; // Fixed case
 import About from "./components/aboutus"; // Added About page
+import AdminPanel from "./components/AdminPanel";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           
           {/* Other Page Routes */}
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/admin-login" element={<AdminPanel />} />
           <Route path="/track" element={<Track />} />
           <Route path="/report" element={<Report />} />
           <Route path="/about" element={<About />} /> {/* Added About Route */}
