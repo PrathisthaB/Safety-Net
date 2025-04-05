@@ -2,7 +2,9 @@ import React, {useState} from 'react'
 import { motion } from "framer-motion";
 import { auth } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {db} from "../config/firebase"
 
 const SignUpForm = () => {
 
@@ -38,6 +40,14 @@ const SignUpForm = () => {
           await updateProfile(userCredential.user, {
             displayName: formData.fullName,
           });
+          await setDoc(doc(db, "users", userCredential.user.uid), {
+            fullName: formData.fullName,
+            email: formData.email,
+            is_admin: false, 
+            phone: formData.phone,
+            createdAt: new Date()
+          });
+          localStorage.setItem("isAdmin", "false");
           alert("Signed up successfully!")
           navigate("/");
       } catch (error: any) {
